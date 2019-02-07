@@ -1,0 +1,337 @@
+Index: site/Constants.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- site/Constants.js	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ site/Constants.js	(revision )
+@@ -96,10 +96,10 @@
+     title: 'Column Groups',
+     description: 'Table with column groupings.',
+   },
+-  PAGINATION_EXAMPLE: {
+-    location: 'example-pagination.html',
+-    fileName: 'PaginationExample.js',
+-    title: 'Pagination',
++  INFINITE_SCROLL_EXAMPLE: {
++    location: 'example-infinite-scroll.html',
++    fileName: 'InfiniteScrollExample.js',
++    title: 'Infinite Scroll',
+     description: 'A table example that pages in data as the user scrolls. We fake this by having a promise that resolves after a few milliseconds',
+   },
+   FILTER_EXAMPLE: {
+Index: src/ReactTouchHandler.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ReactTouchHandler.js	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ src/ReactTouchHandler.js	(revision )
+@@ -101,6 +101,7 @@
+   }
+ 
+   onTouchStart(/*object*/ event) {
++
+     // Start tracking drag delta for scrolling
+     this._lastTouchX = event.touches[0].pageX;
+     this._lastTouchY = event.touches[0].pageY;
+@@ -147,6 +148,7 @@
+   }
+ 
+   onTouchMove(/*object*/ event) {
++
+     var moveX = event.touches[0].pageX;
+     var moveY = event.touches[0].pageY;
+ 
+Index: README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- README.md	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ README.md	(revision )
+@@ -38,7 +38,7 @@
+ 
+ Implementing a table involves three component types- `<Table/>`,`<Column/>`, and `<Cell/>`.
+ 
+-`<Table />` contains configuration information for the entire table, like dimensions and row count. It's also where you pass down the data to be rendered in the table. 
++`<Table />` contains configuration information for the entire table, like dimensions and row count.
+ 
+ ```javascript
+ 
+@@ -50,7 +50,6 @@
+     width={5000}
+     height={5050}
+     headerHeight={50}
+-    data={rows}>
+     ...
+   </Table>
+ ```    
+Index: src/Scrollbar.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/Scrollbar.js	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ src/Scrollbar.js	(revision )
+@@ -44,6 +44,7 @@
+     position: PropTypes.number,
+     size: PropTypes.number.isRequired,
+     trackColor: PropTypes.oneOf(['gray']),
++    touchEnabled: PropTypes.bool,
+     zIndex: PropTypes.number,
+     verticalTop: PropTypes.number
+   }
+@@ -92,6 +93,8 @@
+ 
+   _onRefFace = (ref) => this._faceRef = ref;
+ 
++  _onRefRoot = (ref) => this._rootRef = ref;
++
+   render() /*?object*/ {
+     if (!this.state.scrollable) {
+       return null;
+@@ -145,6 +148,7 @@
+       FixedDataTableTranslateDOMPosition(faceStyle, 0, position, this._initialRender);
+     }
+ 
++    mainStyle.touchAction = 'none';
+     mainStyle.zIndex = this.props.zIndex;
+ 
+     if (this.props.trackColor === 'gray') {
+@@ -157,10 +161,14 @@
+         onBlur={this._onBlur}
+         onKeyDown={this._onKeyDown}
+         onMouseDown={this._onMouseDown}
++        onTouchCancel={this._onTouchCancel}
++        onTouchEnd={this._onTouchEnd}
++        onTouchMove={this._onTouchMove}
++        onTouchStart={this._onTouchStart}
+         onWheel={this._wheelHandler.onWheel}
+         className={mainClassName}
+         style={mainStyle}
+-        tabIndex={0}>
++        ref={this._onRefRoot}>
+         <div
+           ref={this._onRefFace}
+           className={faceClassName}
+@@ -186,7 +194,8 @@
+     this._mouseMoveTracker = new DOMMouseMoveTracker(
+       this._onMouseMove,
+       this._onMouseMoveEnd,
+-      document.documentElement
++      document.documentElement,
++      this.props.touchEnabled
+     );
+ 
+     if (this.props.position !== undefined &&
+@@ -322,8 +331,8 @@
+       // magically available for browsers somehow.
+       var nativeEvent = event.nativeEvent;
+       var position = this.state.isHorizontal ?
+-        nativeEvent.offsetX || nativeEvent.layerX :
+-        nativeEvent.offsetY || nativeEvent.layerY;
++        nativeEvent.offsetX || nativeEvent.layerX || this.getTouchX(nativeEvent) :
++        nativeEvent.offsetY || nativeEvent.layerY || this.getTouchY(nativeEvent);
+ 
+       // MouseDown on the scroll-track directly, move the center of the
+       // scroll-face to the mouse position.
+@@ -344,9 +353,26 @@
+ 
+     this._mouseMoveTracker.captureMouseMoves(event);
+     // Focus the node so it may receive keyboard event.
+-    ReactDOM.findDOMNode(this).focus();
++    this._rootRef.focus();
+   }
+ 
++  _onTouchCancel = (/*object*/ event) => {
++    event.stopPropagation();
++  }
++
++  _onTouchEnd = (/*object*/ event) => {
++    event.stopPropagation();
++  }
++
++  _onTouchMove = (/*object*/ event) => {
++    event.stopPropagation();
++  }
++
++  _onTouchStart = (/*object*/ event) => {
++    event.stopPropagation();
++    this._onMouseDown(event);
++  }
++
+   _onMouseMove = (/*number*/ deltaX, /*number*/ deltaY) => {
+     var props = this.props;
+     var delta = this.state.isHorizontal ? deltaX : deltaY;
+@@ -474,6 +500,14 @@
+     } catch (oops) {
+       // pass
+     }
++  }
++
++  getTouchX = (/*object*/ e) => {
++    return Math.round(e.targetTouches[0].pageX - e.target.getBoundingClientRect().x);
++  }
++
++  getTouchY = (/*object*/ e) => {
++    return Math.round(e.targetTouches[0].pageY - e.target.getBoundingClientRect().y);
+   }
+ 
+   _setNextState = (/*object*/ nextState, /*?object*/ props) => {
+Index: examples/PaginationExample.js
+===================================================================
+--- examples/PaginationExample.js	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ examples/InfiniteScrollExample.js	(revision )
+@@ -50,7 +50,7 @@
+   }
+ }
+ 
+-class PaginationExample extends React.Component {
++class InfiniteScrollExample extends React.Component {
+   constructor(props) {
+     super(props);
+ 
+@@ -124,4 +124,4 @@
+   }
+ }
+ 
+-module.exports = PaginationExample;
++module.exports = InfiniteScrollExample;
+Index: src/selectors/roughHeights.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/selectors/roughHeights.js	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ src/selectors/roughHeights.js	(revision )
+@@ -126,7 +126,7 @@
+  * @param {{
+  *   overflowX: string,
+  *   showScrollbarX: boolean,
+- * }}
++ * }} scrollFlags
+  * @param {number} width
+  * @return {ScrollbarState}
+  */
+Index: src/FixedDataTable.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/FixedDataTable.js	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ src/FixedDataTable.js	(revision )
+@@ -137,13 +137,13 @@
+      */
+     touchScrollEnabled: PropTypes.bool,
+ 
+-    // TODO (jordan) Remove propType of showScrollbarX & showScrollbarY without losing documentation (moved to scrollFlags)
+     /**
+      * Boolean flags to control if scrolling with keys is enabled
+      */
+     keyboardScrollEnabled: PropTypes.bool,
+     keyboardPageEnabled: PropTypes.bool,
+ 
++    // TODO (jordan) Remove propType of showScrollbarX & showScrollbarY without losing documentation (moved to scrollFlags)
+     /**
+      * Hide the scrollbar but still enable scroll functionality
+      */
+@@ -666,6 +666,7 @@
+           onScroll={this._onVerticalScroll}
+           verticalTop={bodyOffsetTop}
+           position={scrollY}
++          touchEnabled={touchScrollEnabled}
+         />;
+     }
+ 
+@@ -678,6 +679,7 @@
+           onScroll={this._onHorizontalScroll}
+           position={scrollX}
+           size={width}
++          touchEnabled={touchScrollEnabled}
+         />;
+     }
+ 
+@@ -779,7 +781,10 @@
+           style={{top: footOffsetTop}}
+         />;
+     }
+-
++    var tabIndex = null;
++    if (this.props.keyboardPageEnabled || this.props.keyboardScrollEnabled) {
++      tabIndex = 0;
++    }
+     return (
+       <div
+         className={joinClasses(
+@@ -787,7 +792,7 @@
+           cx('fixedDataTableLayout/main'),
+           cx('public/fixedDataTable/main'),
+         )}
+-        tabIndex={0}
++        tabIndex={tabIndex}
+         onKeyDown={this._onKeyDown}
+         onWheel={this._wheelHandler.onWheel}
+         onTouchStart={this._touchHandler.onTouchStart}
+Index: package.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- package.json	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ package.json	(revision )
+@@ -58,6 +58,7 @@
+     "webpack-dev-server": "^2.6.1"
+   },
+   "scripts": {
++    "webpack": "webpack",
+     "site-dev-server": "./build_helpers/startSiteDevServer.sh",
+     "site-build": "./build_helpers/buildStaticSite.sh",
+     "build-dist": "./build_helpers/buildDist.sh",
+Index: site/examples/ExamplesPage.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- site/examples/ExamplesPage.js	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ site/examples/ExamplesPage.js	(revision )
+@@ -37,7 +37,7 @@
+   [ExamplePages.EXPANDED_EXAMPLE.location]: require('../../examples/ExpandedExample'),
+   [ExamplePages.FLEXGROW_EXAMPLE.location]: require('../../examples/FlexGrowExample'),
+   [ExamplePages.COLUMN_GROUPS_EXAMPLE.location]: require('../../examples/ColumnGroupsExample'),
+-  [ExamplePages.PAGINATION_EXAMPLE.location]: require('../../examples/PaginationExample'),
++  [ExamplePages.INFINITE_SCROLL_EXAMPLE.location]: require('../../examples/InfiniteScrollExample'),
+   [ExamplePages.FILTER_EXAMPLE.location]: require('../../examples/FilterExample'),
+   [ExamplePages.SORT_EXAMPLE.location]: require('../../examples/SortExample'),
+   [ExamplePages.RESPONSIVE_EXAMPLE.location]: require('../../examples/ResponsiveExample'),
+Index: src/css/layout/ScrollbarLayout.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/css/layout/ScrollbarLayout.css	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ src/css/layout/ScrollbarLayout.css	(revision )
+@@ -43,7 +43,7 @@
+   z-index: 1;
+   transition-duration: 250ms;
+   transition-timing-function: ease;
+-  transition-property: background-color width position;
++  transition-property: width;
+ }
+ 
+ /**
+Index: src/vendor_upstream/dom/translateDOMPositionXY.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/vendor_upstream/dom/translateDOMPositionXY.js	(revision c4c13c2d132c30dc8d3531ca7a46adaf17a6dee5)
++++ src/vendor_upstream/dom/translateDOMPositionXY.js	(revision )
+@@ -30,7 +30,6 @@
+     if (!isSafari && BrowserSupportCore.hasCSS3DTransforms()) {
+       return function(/*object*/ style, /*number*/ x, /*number*/ y) {
+         style[TRANSFORM] ='translate3d(' + x + 'px,' + y + 'px,0)';
+-        style[BACKFACE_VISIBILITY] = 'hidden';
+       };
+     } else {
+       return function(/*object*/ style, /*number*/ x, /*number*/ y) {

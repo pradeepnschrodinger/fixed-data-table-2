@@ -1,0 +1,384 @@
+Index: .github/ISSUE_TEMPLATE.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .github/ISSUE_TEMPLATE.md	(date 1546607924000)
++++ .github/ISSUE_TEMPLATE.md	(revision )
+@@ -14,7 +14,7 @@
+ 
+ ## Steps to Reproduce (for bugs)
+ <!--- Provide a link to a live example, or - -->
+-<!--- Fork the jsfiddle to reproduce https://jsfiddle.net/uq8osbp1/ ->
++<!--- Fork the jsfiddle to reproduce https://codepen.io/alphalpha/pen/oqKJgG ->
+ 
+ ## Context
+ <!--- How has this issue affected you? What are you trying to accomplish? -->
+Index: examples/SortExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/SortExample.js	(date 1546607924000)
++++ examples/SortExample.js	(revision )
+@@ -99,7 +99,7 @@
+       if (valueA < valueB) {
+         sortVal = -1;
+       }
+-      if (sortVal !== 0 && sortDir === SortTypes.ASC) {
++      if (sortVal !== 0 && sortDir === SortTypes.DESC) {
+         sortVal = sortVal * -1;
+       }
+ 
+Index: src/FixedDataTableCell.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/FixedDataTableCell.js	(date 1546607924000)
++++ src/FixedDataTableCell.js	(revision )
+@@ -242,8 +242,8 @@
+           style={columnResizerStyle}
+           onMouseDown={this._onColumnResizerMouseDown}
+           onTouchStart={this.props.touchEnabled ? this._onColumnResizerMouseDown : null}
+-          onTouchEnd={this.props.touchEnabled ? e => e.stopPropagation() : null}
+-          onTouchMove={this.props.touchEnabled ? e => e.stopPropagation() : null}>
++          onTouchEnd={this.props.touchEnabled ? _suppressEvent : null}
++          onTouchMove={this.props.touchEnabled ? _suppressEvent : null}>
+           <div
+             className={joinClasses(
+               cx('fixedDataTableCellLayout/columnResizerKnob'),
+@@ -315,7 +315,8 @@
+      * This prevents the rows from moving around when we resize the
+      * headers on touch devices.
+      */
+-    if(this.props.touchEnabled) {
++    if (this.props.touchEnabled) {
++      event.preventDefault();
+       event.stopPropagation();
+     }
+   }
+@@ -327,6 +328,11 @@
+       this.props.left,
+       event
+     );
++  }
++
++  _suppressEvent = (/*object*/ event) => {
++    event.preventDefault();
++    event.stopPropagation();
+   }
+ };
+ 
+Index: test/FixedDataTableRoot-test.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- test/FixedDataTableRoot-test.js	(date 1546607924000)
++++ test/FixedDataTableRoot-test.js	(revision )
+@@ -48,10 +48,12 @@
+       return this._tableRef.state;
+     }
+ 
++    _onRef = (ref) => this._tableRef = ref;
++
+     render() {
+       return (
+         <Table
+-          ref={(r) => this._tableRef = r}
++          ref={this._onRef}
+           width={600}
+           height={400}
+           rowsCount={50}
+Index: src/vendor_upstream/dom/DOMMouseMoveTracker.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/vendor_upstream/dom/DOMMouseMoveTracker.js	(date 1546607924000)
++++ src/vendor_upstream/dom/DOMMouseMoveTracker.js	(revision )
+@@ -54,8 +54,7 @@
+    * in order to grab inital state.
+    */
+   captureMouseMoves(/*object*/ event) {
+-    if (!this._eventMoveToken && !this._eventUpToken &&
+-        !this._eventLeaveToken && !this._eventOutToken) {
++    if (!this._eventMoveToken && !this._eventUpToken && !this._eventLeaveToken) {
+       this._eventMoveToken = EventListener.listen(
+         this._domNode,
+         'mousemove',
+@@ -71,11 +70,6 @@
+         'mouseleave',
+         this._onMouseEnd
+       );
+-      this._eventOutToken = EventListener.listen(
+-        this._domNode,
+-        'mouseout',
+-        this.onMouseEnd
+-      );
+     }
+ 
+     if (this._isTouchEnabled && !this._eventTouchStartToken &&
+@@ -111,29 +105,26 @@
+   }
+ 
+   /**
+-   * These releases all of the listeners on document.body.
++   * This releases all of the listeners on document.body.
+    */
+   releaseMouseMoves() {
+-    if (this._eventMoveToken && this._eventUpToken &&
+-        this._eventLeaveToken && this._eventOutToken) {
++    if (this._eventMoveToken && this._eventUpToken && this._eventLeaveToken) {
+       this._eventMoveToken.remove();
+       this._eventMoveToken = null;
+       this._eventUpToken.remove();
+       this._eventUpToken = null;
+       this._eventLeaveToken.remove();
+       this._eventLeaveToken = null;
+-      this._eventOutToken.remove();
+-      this._eventOutToken = null;
+     }
+ 
+     if (this._isTouchEnabled && this._eventTouchStartToken &&
+         this._eventTouchMoveToken && this._eventTouchEndToken) {
+-        this._eventTouchStartToken.remove();
+-        this._eventTouchStartToken = null;
+-        this._eventTouchMoveToken.remove();
+-        this._eventTouchMoveToken = null;
+-        this._eventTouchEndToken.remove();
+-        this._eventTouchEndToken = null;
++      this._eventTouchStartToken.remove();
++      this._eventTouchStartToken = null;
++      this._eventTouchMoveToken.remove();
++      this._eventTouchMoveToken = null;
++      this._eventTouchEndToken.remove();
++      this._eventTouchEndToken = null;
+     }
+ 
+     if (this._animationFrameID !== null) {
+Index: src/FixedDataTableRow.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/FixedDataTableRow.js	(date 1546607924000)
++++ src/FixedDataTableRow.js	(revision )
+@@ -105,6 +105,11 @@
+     onClick: PropTypes.func,
+ 
+     /**
++     * Fire when a contextual-menu is requested above a row.
++     */
++    onContextMenu: PropTypes.func,
++
++    /**
+      * Fire when a row is double clicked.
+      */
+     onDoubleClick: PropTypes.func,
+@@ -260,6 +265,7 @@
+       <div
+         className={joinClasses(className, this.props.className)}
+         onClick={this.props.onClick ? this._onClick : null}
++        onContextMenu={this.props.onContextMenu ? this._onContextMenu : null}
+         onDoubleClick={this.props.onDoubleClick ? this._onDoubleClick : null}
+         onMouseDown={this.props.onMouseDown ? this._onMouseDown : null}
+         onMouseUp={this.props.onMouseUp ? this._onMouseUp : null}
+@@ -355,6 +361,10 @@
+ 
+   _onClick = (/*object*/ event) => {
+     this.props.onClick(event, this.props.index);
++  };
++
++  _onContextMenu = (/*object*/ event) => {
++    this.props.onContextMenu(event, this.props.index)
+   };
+ 
+   _onDoubleClick = (/*object*/ event) => {
+Index: src/FixedDataTableBufferedRows.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/FixedDataTableBufferedRows.js	(date 1546607924000)
++++ src/FixedDataTableBufferedRows.js	(revision )
+@@ -25,6 +25,7 @@
+     height: PropTypes.number.isRequired,
+     offsetTop: PropTypes.number.isRequired,
+     onRowClick: PropTypes.func,
++    onRowContextMenu: PropTypes.func,
+     onRowDoubleClick: PropTypes.func,
+     onRowMouseDown: PropTypes.func,
+     onRowMouseUp: PropTypes.func,
+@@ -94,6 +95,7 @@
+             scrollLeft={Math.round(props.scrollLeft)}
+             visible={false}
+             fixedColumns={props.fixedColumns}
++            fixedRightColumns={props.fixedColumns}
+             scrollableColumns={props.scrollableColumns}
+           />
+         );
+@@ -123,6 +125,7 @@
+           fixedRightColumns={props.fixedRightColumns}
+           scrollableColumns={props.scrollableColumns}
+           onClick={props.onRowClick}
++          onContextMenu={props.onRowContextMenu}
+           onDoubleClick={props.onRowDoubleClick}
+           onMouseDown={props.onRowMouseDown}
+           onMouseUp={props.onRowMouseUp}
+Index: examples/ResizeExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/ResizeExample.js	(date 1546607924000)
++++ examples/ResizeExample.js	(revision )
+@@ -44,6 +44,7 @@
+         rowsCount={dataList.getSize()}
+         onColumnResizeEndCallback={this._onColumnResizeEndCallback}
+         isColumnResizing={false}
++        touchScrollEnabled={true}
+         width={1000}
+         height={500}
+         {...this.props}>
+Index: src/Scrollbar.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/Scrollbar.js	(date 1546607924000)
++++ src/Scrollbar.js	(revision )
+@@ -90,6 +90,8 @@
+     zIndex: 99,
+   }
+ 
++  _onRefFace = (ref) => this._faceRef = ref;
++
+   render() /*?object*/ {
+     if (!this.state.scrollable) {
+       return null;
+@@ -160,7 +162,7 @@
+         style={mainStyle}
+         tabIndex={0}>
+         <div
+-          ref={(r) => this._faceRef = r}
++          ref={this._onRefFace}
+           className={faceClassName}
+           style={faceStyle}
+         />
+Index: src/vendor_upstream/dom/ReactWheelHandler.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/vendor_upstream/dom/ReactWheelHandler.js	(date 1546607924000)
++++ src/vendor_upstream/dom/ReactWheelHandler.js	(revision )
+@@ -36,6 +36,7 @@
+     this._deltaX = 0;
+     this._deltaY = 0;
+     this._didWheel = this._didWheel.bind(this);
++    this._rootRef = null;
+     if (typeof handleScrollX !== 'function') {
+       handleScrollX = handleScrollX ?
+         emptyFunction.thatReturnsTrue :
+@@ -61,6 +62,17 @@
+     this.onWheel = this.onWheel.bind(this);
+   }
+ 
++  _contains(target) {
++    var parent = target;
++    while (parent != document.body) {
++      if (parent === this._rootRef) {
++        return true;
++      }
++      parent = parent.parentNode;
++    }
++    return false;
++  }
++
+   onWheel(/*object*/ event) {
+     var normalizedEvent = normalizeWheel(event);
+     var deltaX = this._deltaX + normalizedEvent.pixelX;
+@@ -71,6 +83,10 @@
+       return;
+     }
+ 
++    if (this._rootRef && !this._contains(event.target)) {
++      return;
++    }
++
+     this._deltaX += handleScrollX ? normalizedEvent.pixelX : 0;
+     this._deltaY += handleScrollY ? normalizedEvent.pixelY : 0;
+     event.preventDefault();
+@@ -86,6 +102,10 @@
+     if (changed === true && this._animationFrameID === null) {
+       this._animationFrameID = requestAnimationFramePolyfill(this._didWheel);
+     }
++  }
++
++  setRoot(rootRef) {
++    this._rootRef = rootRef;
+   }
+ 
+   _didWheel() {
+Index: src/FixedDataTable.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/FixedDataTable.js	(date 1546607924000)
++++ src/FixedDataTable.js	(revision )
+@@ -309,6 +309,11 @@
+     /**
+      * If enabled scroll events will not be propagated outside of the table.
+      */
++    stopReactWheelPropagation: PropTypes.bool,
++
++    /**
++     * If enabled scroll events will not be propagated outside of the table.
++     */
+     stopScrollPropagation: PropTypes.bool,
+ 
+     /**
+@@ -324,6 +329,11 @@
+     onRowClick: PropTypes.func,
+ 
+     /**
++     * Callback that is called when a contextual-menu event happens on a row.
++     */
++    onRowContextMenu: PropTypes.func,
++
++    /**
+      * Callback that is called when a row is double clicked.
+      */
+     onRowDoubleClick: PropTypes.func,
+@@ -784,6 +794,7 @@
+         onTouchEnd={this._touchHandler.onTouchEnd}
+         onTouchMove={this._touchHandler.onTouchMove}
+         onTouchCancel={this._touchHandler.onTouchCancel}
++        ref={this._onRef}
+         style={{
+           height: componentHeight,
+           width
+@@ -820,6 +831,7 @@
+         height={bodyHeight}
+         offsetTop={offsetTop}
+         onRowClick={props.onRowClick}
++        onRowContextMenu={props.onRowContextMenu}
+         onRowDoubleClick={props.onRowDoubleClick}
+         onRowMouseUp={props.onRowMouseUp}
+         onRowMouseDown={props.onRowMouseDown}
+@@ -842,6 +854,12 @@
+         showScrollbarY={scrollEnabledY}
+       />
+     );
++  }
++
++  _onRef = (div) => {
++    if (this.props.stopReactWheelPropagation) {
++      this._wheelHandler.setRoot(div);
++    }
+   }
+ 
+   /**

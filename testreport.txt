@@ -1,0 +1,360 @@
+
+> fixed-data-table-2@1.0.0-beta.11 test /home/pradeep/project/fixed-data-table-2
+> mocha-webpack --webpack-config webpack.config-test.js "test/**/*-test.js" --require build_helpers/test-globals.js
+
+ WEBPACK  Compiling...
+
+ WEBPACK  Compiled successfully in 8434ms
+
+ MOCHA  Testing...
+
+
+
+  FixedDataTableRoot
+    render 
+      ✓ should not crash and burn
+    initial render
+      ✓ should set scrollLeft correctly (121ms)
+      ✓ should set scrollTop correctly (106ms)
+      ✓ should set scrollToColumn correctly (94ms)
+      ✓ should set scrollToRow correctly (89ms)
+    update render
+      ✓ should update scrollLeft correctly (124ms)
+      ✓ should update scrollTop correctly (152ms)
+      ✓ should update scrollToColumn correctly (96ms)
+      ✓ should update scrollToRow correctly (123ms)
+    unset props
+      ✓ should not blow up when unsetting the scrollLeft property (82ms)
+      ✓ should not blow up when unsetting the scrollTop property (91ms)
+      ✓ should not blow up when unsetting the scrollToColumn property (76ms)
+      ✓ should not blow up when unsetting the scrollToRow property (99ms)
+      ✓ should set scrollToRow correctly when height changes (56ms)
+
+  convertColumnElementsToData
+    ✓ should return appropriate columnGroupProps, columnProps, and elementTemplates
+    ✓ should not specify a groupIdx if none exists
+    ✓ should include all necessary props and remove all others
+    ✓ should include undefined placeholders for missing header and footer templates
+
+  ReactTouchHandler
+    onTouchStart
+      ✓ should stop event propagation if flag is true
+      ✓ should stop event propagation if function returns true
+      ✓ should not stop event propagation if flag is false
+      ✓ should not stop event propagation if function returns false
+      ✓ should start new interval
+    onTouchEnd
+      ✓ should stop event propagation if flag is true
+      ✓ should stop event propagation if function returns true
+      ✓ should not stop event propagation if flag is false
+      ✓ should not stop event propagation if function returns false
+      ✓ should clear last interval
+      ✓ Should start deceleration
+
+  columnStateHelper
+    resizeColumn
+      ✓ should return a new object with column resizing data
+    reorderColumn
+      ✓ should return a new object with column reorder data
+    reorderColumnMove
+      ✓ should update drag distance on move
+      ✓ should adjust scrollX when nears first edge
+      ✓ should adjust scrollX when nears end edge
+      ✓ should not adjust scrollX when fixed
+    initialize
+      ✓ should initialize column state as expected
+      1) should clamp scrollX to maxScrollX
+      2) should use scrollLeft when specified
+      ✓ should overwrite column resizing from props
+      ✓ should scroll to column when specified via prop
+      ✓ should scroll to column when behind existing scroll
+      ✓ should not change scroll when column already on screen
+      ✓ should not change scroll when column is fixed
+      ✓ should not change scroll when column is unchanged
+
+  computeRenderedRows
+    computeRenderedRows
+      3) should update bufferSet & row heights for buffered rows
+      4) should work as expected when lastIndex is specified
+      5) should handle things well when rowsCount is 0
+      6) should clamp scrollY to maxScrollY
+      7) should update row heights and scrollContentHeight
+
+  scrollAnchor
+    scrollTo
+      8) should scroll to row and offset of scrollY
+      9) should scroll to first index if scrollY < 0
+      10) should scroll to last index if scrollY is larger than max scroll
+      11) should scroll to first index if rowsCount is 0
+    scrollToRow
+      ✓ should scroll forward to row
+      ✓ should scroll backward to row
+      ✓ should not scroll if row already in viewport
+      ✓ should return default anchor if rowsCount is 0
+      ✓ should treat a negative row index as 0
+      ✓ should clamp to the max row
+
+  columnTemplates
+    ✓ should organize props and templates appropriately
+
+  columnWidths
+    ✓ should partition columns on fixed flag
+    ✓ should maintain widths when no surplus
+    ✓ should distribute flex width
+    ✓ should take into account scrollbar visibility
+    ✓ should compute availableScrollWidth and maxScrollX
+
+  roughHeights
+    height calculations
+      ✓ should estimate component heights
+      ✓ should adjust to scrollbar visibility
+      ✓ should adjust to scrollbar possible visibility
+      ✓ should use maxHeight when appropriate
+      ✓ should not have negative available height
+    scrollStateX
+      ✓ should show scrollbar if content width exceeds width
+      ✓ should have a conditional scrollbar if content is within a scrollbar size of width
+      ✓ should show not show scrollbar if content width is less than width
+      ✓ should not show scrollbar if overflowX is hidden
+      ✓ should not show scrollbar if showScrollbarX is false
+    bufferRowCount
+      ✓ should return half the max visible rows count
+      ✓ should round max visible rows count up
+      ✓ should round buffer rows count down
+      ✓ should be at least 3
+      ✓ should be at most 6
+buffer set: 1
+      ✓ should be settable via prop
+
+  scrollbarsVisible
+    ✓ should show scrollbars when content overflows
+    ✓ should not show horizontal scrollbar when hidden
+    ✓ should not show vertical scrollbar when hidden
+    ✓ should not show vertical scrollbar when disabled
+    horizontal state is "if vertical is visible"
+      ✓ should not show scrollbars when vertical content does not overflow
+      ✓ should show both scrollbars when vertical content overflows
+
+  tableHeights
+    ✓ should compute appropriate component heights
+    ✓ should adjust when horizontal scrollbar is visible
+    ✓ should collapse rows body height when not enough content
+    ✓ should not be affected by use max height when content exceeds height
+    ✓ should collapse whole component when not enough content and max height specified
+    ✓ should adjust visibleRowsHeight to ownerHeight when specified
+    ✓ should grow the component to ownerHeight, even when collapsing due to useMaxHeight
+
+
+  83 passing (2s)
+  11 failing
+
+  1) columnStateHelper
+       initialize
+         should clamp scrollX to maxScrollX:
+
+      AssertionError: expected { Object (columnResizingData, isColumnResizing, ...) } to deeply equal { Object (columnResizingData, isColumnResizing, ...) }
+      + expected - actual
+
+           "placeholder": true
+         }
+         "isColumnResizing": true
+         "maxScrollX": 400
+      -  "scrollJumpedX": true
+      +  "scrollJumpedX": false
+         "scrollX": 400
+       }
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/columnStateHelper-test.js?:250:24)
+
+  2) columnStateHelper
+       initialize
+         should use scrollLeft when specified:
+
+      AssertionError: expected { Object (columnResizingData, isColumnResizing, ...) } to deeply equal { Object (columnResizingData, isColumnResizing, ...) }
+      + expected - actual
+
+           "placeholder": true
+         }
+         "isColumnResizing": true
+         "maxScrollX": 400
+      -  "scrollJumpedX": true
+      +  "scrollJumpedX": false
+         "scrollX": 100
+       }
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/columnStateHelper-test.js?:261:24)
+
+  3) computeRenderedRows
+       computeRenderedRows
+         should update bufferSet & row heights for buffered rows:
+
+      AssertionError: expected { Object (bufferSet, placeholder, ...) } to deeply equal { Object (bufferSet, placeholder, ...) }
+      + expected - actual
+
+           20
+           21
+         ]
+         "scrollContentHeight": 10000
+      -  "scrollJumpedY": [undefined]
+         "scrollY": 1900
+         "storedHeights": {
+           "0": 125
+           "1": 125
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/computeRenderedRows-test.js?:115:24)
+
+  4) computeRenderedRows
+       computeRenderedRows
+         should work as expected when lastIndex is specified:
+
+      AssertionError: expected { Object (bufferSet, placeholder, ...) } to deeply equal { Object (bufferSet, placeholder, ...) }
+      + expected - actual
+
+           31
+           32
+         ]
+         "scrollContentHeight": 10000
+      -  "scrollJumpedY": [undefined]
+         "scrollY": 3275
+         "storedHeights": {
+           "0": 125
+           "1": 125
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/computeRenderedRows-test.js?:147:24)
+
+  5) computeRenderedRows
+       computeRenderedRows
+         should handle things well when rowsCount is 0:
+
+      AssertionError: expected { Object (bufferSet, placeholder, ...) } to deeply equal { Object (bufferSet, placeholder, ...) }
+      + expected - actual
+
+           "subRowHeightGetter": [Function]
+         }
+         "rows": []
+         "scrollContentHeight": 10000
+      -  "scrollJumpedY": [undefined]
+         "scrollY": 0
+         "storedHeights": {
+           "0": 125
+           "1": 125
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/computeRenderedRows-test.js?:167:24)
+
+  6) computeRenderedRows
+       computeRenderedRows
+         should clamp scrollY to maxScrollY:
+
+      AssertionError: expected { Object (bufferSet, placeholder, ...) } to deeply equal { Object (bufferSet, placeholder, ...) }
+      + expected - actual
+
+           78
+           79
+         ]
+         "scrollContentHeight": 10000
+      -  "scrollJumpedY": [undefined]
+         "scrollY": 9400
+         "storedHeights": {
+           "0": 125
+           "1": 125
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/computeRenderedRows-test.js?:197:24)
+
+  7) computeRenderedRows
+       computeRenderedRows
+         should update row heights and scrollContentHeight:
+
+      AssertionError: expected { Object (bufferSet, placeholder, ...) } to deeply equal { Object (bufferSet, placeholder, ...) }
+      + expected - actual
+
+           19
+           20
+         ]
+         "scrollContentHeight": 10600
+      -  "scrollJumpedY": [undefined]
+         "scrollY": 2050
+         "storedHeights": {
+           "0": 125
+           "1": 125
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/computeRenderedRows-test.js?:237:24)
+
+  8) scrollAnchor
+       scrollTo
+         should scroll to row and offset of scrollY:
+
+      AssertionError: expected { Object (firstIndex, firstOffset, ...) } to deeply equal { Object (firstIndex, firstOffset, ...) }
+      + expected - actual
+
+         "changed": true
+         "firstIndex": 21
+         "firstOffset": -50
+         "lastIndex": [undefined]
+      -  "scrollJumpedY": true
+       }
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/scrollAnchor-test.js?:51:24)
+
+  9) scrollAnchor
+       scrollTo
+         should scroll to first index if scrollY < 0:
+
+      AssertionError: expected { Object (firstIndex, firstOffset, ...) } to deeply equal { Object (firstIndex, firstOffset, ...) }
+      + expected - actual
+
+         "changed": true
+         "firstIndex": 0
+         "firstOffset": 0
+         "lastIndex": [undefined]
+      -  "scrollJumpedY": true
+       }
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/scrollAnchor-test.js?:61:24)
+
+  10) scrollAnchor
+       scrollTo
+         should scroll to last index if scrollY is larger than max scroll:
+
+      AssertionError: expected { Object (firstIndex, firstOffset, ...) } to deeply equal { Object (firstIndex, firstOffset, ...) }
+      + expected - actual
+
+         "changed": true
+         "firstIndex": [undefined]
+         "firstOffset": 0
+         "lastIndex": 99
+      -  "scrollJumpedY": true
+       }
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/scrollAnchor-test.js?:71:24)
+
+  11) scrollAnchor
+       scrollTo
+         should scroll to first index if rowsCount is 0:
+
+      AssertionError: expected { Object (firstIndex, firstOffset, ...) } to deeply equal { Object (firstIndex, firstOffset, ...) }
+      + expected - actual
+
+         "changed": true
+         "firstIndex": 0
+         "firstOffset": 0
+         "lastIndex": [undefined]
+      -  "scrollJumpedY": true
+       }
+      
+      at Function.assert.deepEqual (webpack:///./node_modules/chai/lib/chai/interface/assert.js?:216:32)
+      at Context.eval (webpack:///./test/reducers/scrollAnchor-test.js?:83:24)
+
+
+
+ MOCHA  Tests completed with 11 failure(s)
+

@@ -1,0 +1,201 @@
+Index: src/ReactTouchHandler.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/ReactTouchHandler.js	(revision 00c0f255f4ca125ea5828831bf727bedd83c5d92)
++++ src/ReactTouchHandler.js	(revision )
+@@ -19,10 +19,12 @@
+ import emptyFunction from 'emptyFunction';
+ import requestAnimationFramePolyfill from 'requestAnimationFramePolyfill';
+ 
+-var MOVE_AMPLITUDE = 1.6;
+-var DECELERATION_AMPLITUDE = 1.6;
+-var DECELERATION_FACTOR = 325;
+-var TRACKER_TIMEOUT = 100;
++const DEFAULT_MOVEMENT_SETTINGS = {
++  MOVE_AMPLITUDE: 1.6,
++  DECELERATION_AMPLITUDE: 1.6,
++  DECELERATION_FACTOR: 325,
++  TRACKER_TIMEOUT: 100,
++};
+ 
+ class ReactTouchHandler {
+   /**
+@@ -35,7 +37,8 @@
+     /*function*/ onTouchScroll,
+     /*boolean|function*/ handleScrollX,
+     /*boolean|function*/ handleScrollY,
+-    /*?boolean|?function*/ stopPropagation
++    /*?boolean|?function*/ stopPropagation,
++    /*?object*/ movementSettings = DEFAULT_MOVEMENT_SETTINGS
+   ) {
+ 
+     // The animation frame id for the drag scroll
+@@ -87,6 +90,7 @@
+ 
+     this._handleScrollX = handleScrollX;
+     this._handleScrollY = handleScrollY;
++    this._movementSettings = movementSettings;
+     this._stopPropagation = stopPropagation;
+     this._onTouchScrollCallback = onTouchScroll;
+ 
+@@ -101,6 +105,7 @@
+   }
+ 
+   onTouchStart(/*object*/ event) {
++    var TRACKER_TIMEOUT = this._movementSettings.TRACKER_TIMEOUT;
+ 
+     // Start tracking drag delta for scrolling
+     this._lastTouchX = event.touches[0].pageX;
+@@ -149,6 +154,7 @@
+ 
+   onTouchMove(/*object*/ event) {
+ 
++    var MOVE_AMPLITUDE = this._movementSettings.MOVE_AMPLITUDE;
+     var moveX = event.touches[0].pageX;
+     var moveY = event.touches[0].pageY;
+ 
+@@ -215,6 +221,7 @@
+     var elapsed = now - this._lastFrameTimestamp;
+     var oldVelocityX = this._velocityX;
+     var oldVelocityY = this._velocityY;
++    var TRACKER_TIMEOUT = this._movementSettings.TRACKER_TIMEOUT;
+ 
+     // We compute velocity using a weighted average of the current velocity and the previous velocity
+     // If the previous velocity is 0, put the full weight on the last 100 ms
+@@ -262,6 +269,9 @@
+    * This is called recursively on animation frames until the delta is below a threshold (5 pixels)
+    */
+   _autoScroll() {
++    var DECELERATION_AMPLITUDE = this._movementSettings.DECELERATION_AMPLITUDE;
++    var DECELERATION_FACTOR = this._movementSettings.DECELERATION_FACTOR;
++
+     var elapsed = Date.now() - this._autoScrollTimestamp;
+     var factor = DECELERATION_AMPLITUDE * Math.exp(-elapsed / DECELERATION_FACTOR);
+     var deltaX = factor * this._velocityX;
+Index: src/selectors/config.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/selectors/config.js	(revision )
++++ src/selectors/config.js	(revision )
+@@ -0,0 +1,69 @@
++/**
++ * Copyright Schrodinger, LLC
++ * All rights reserved.
++ *
++ * This source code is licensed under the BSD-style license found in the
++ * LICENSE file in the root directory of this source tree. An additional grant
++ * of patent rights can be found in the PATENTS file in the same directory.
++ *
++ * @providesModule tableHeights
++ */
++import Scrollbar from 'Scrollbar';
++import roughHeights from 'roughHeights';
++import scrollbarsVisible from 'scrollbarsVisible';
++import shallowEqualSelector from 'shallowEqualSelector';
++
++/**
++ * Compute the necessary heights for rendering parts of the table
++ *
++ * @param {{
++ *   footerHeight: number,
++ *   groupHeaderHeight: number,
++ *   headerHeight: number,
++ * }} elementHeights
++ * @param {number|undefined} ownerHeight
++ * @param {number} reservedHeight
++ * @param {number} scrollContentHeight
++ * @param {{
++ *   availableHeight: number,
++ *   scrollEnabledX: boolean,
++ * }} scrollbarsVisible
++ * @param {boolean} useMaxHeight
++ * @return {{
++ *   bodyHeight: number,
++ *   bodyOffsetTop: number,
++ *   componentHeight: number,
++ *   contentHeight: number,
++ *   footOffsetTop: number,
++ *   scrollbarXOffsetTop: number,
++ *   scrollbarYHeight: number,
++ *   visibleRowsHeight: number,
++ * }}
++ */
++function tableHeights(elementHeights, ownerHeight, reservedHeight,
++    scrollContentHeight, scrollbarsVisible, useMaxHeight) {
++  const { availableHeight, scrollEnabledX } = scrollbarsVisible;
++  let reservedWithScrollbar = reservedHeight;
++  if (scrollEnabledX) {
++    reservedWithScrollbar += Scrollbar.SIZE;
++  }
++
++  // If less content than space for rows (bodyHeight), then
++  // we should shrink the space for rows to fit our row content (scrollContentHeight).
++  const bodyHeight = Math.min(availableHeight, scrollContentHeight);
++
++  return {
++    touchConfig,
++    bodyOffsetTop,
++    componentHeight,
++    contentHeight,
++    footOffsetTop,
++    scrollbarXOffsetTop,
++    scrollbarYHeight,
++    visibleRowsHeight,
++  };
++}
++
++export default shallowEqualSelector([
++  state => state.touchConfig,
++], tableHeights);
+Index: src/FixedDataTableContainer.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/FixedDataTableContainer.js	(revision 00c0f255f4ca125ea5828831bf727bedd83c5d92)
++++ src/FixedDataTableContainer.js	(revision )
+@@ -99,6 +99,7 @@
+       'scrollX',
+       'scrollY',
+       'tableSize',
++      'touchConfig',
+     ]);
+ 
+     this.setState(boundState);
+Index: src/FixedDataTable.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/FixedDataTable.js	(revision 00c0f255f4ca125ea5828831bf727bedd83c5d92)
++++ src/FixedDataTable.js	(revision )
+@@ -28,6 +28,7 @@
+ import joinClasses from 'joinClasses';
+ import scrollbarsVisible from 'scrollbarsVisible';
+ import tableHeightsSelector from 'tableHeights';
++import configSelector from 'config';
+ 
+ var ARROW_SCROLL_SPEED = 25;
+ 
+@@ -438,6 +439,7 @@
+   componentWillMount() {
+     this._didScrollStop = debounceCore(this._didScrollStopSync, 200, this);
+     this._onKeyDown = this._onKeyDown.bind(this);
++    const touchConfig = configSelector(this.props).touch;
+ 
+     this._wheelHandler = new ReactWheelHandler(
+       this._onScroll,
+@@ -450,7 +452,8 @@
+       this._onScroll,
+       this._shouldHandleTouchX,
+       this._shouldHandleTouchY,
+-      this.props.stopScrollPropagation
++      this.props.stopScrollPropagation,
++      touchConfig
+     );
+   }
+ 

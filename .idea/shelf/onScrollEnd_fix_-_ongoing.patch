@@ -1,0 +1,221 @@
+Index: src/FixedDataTableContainer.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/FixedDataTableContainer.js	(date 1547003819000)
++++ src/FixedDataTableContainer.js	(revision )
+@@ -98,6 +98,7 @@
+       'scrollFlags',
+       'scrollX',
+       'scrollY',
++      'scrolling',
+       'tableSize',
+     ]);
+ 
+Index: src/FixedDataTable.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/FixedDataTable.js	(date 1547003819000)
++++ src/FixedDataTable.js	(revision )
+@@ -573,10 +573,14 @@
+     // In the case of controlled scrolling, notify.
+     if (this.props.tableSize.ownerHeight !== nextProps.tableSize.ownerHeight ||
+       this.props.scrollTop !== nextProps.scrollTop ||
+-      this.props.scrollLeft !== nextProps.scrollLeft) {
++      this.props.scrollLeft !== nextProps.scrollLeft ||
++      (!this.props.scrolling && nextProps.scrolling)
++    ) {
+       this._didScrollStart();
+     }
+ 
++    if (this.props.scrolling && !nextProps.scrolling) {
++    }
+     // Cancel any pending debounced scroll handling and handle immediately.
+     this._didScrollStop.reset();
+     this._didScrollStopSync();
+@@ -619,6 +623,7 @@
+       scrollContentHeight,
+       scrollX,
+       scrollY,
++      scrolling,
+       tableSize,
+       touchScrollEnabled,
+     } = this.props;
+@@ -633,7 +638,7 @@
+       groupHeader = (
+         <FixedDataTableRow
+           key="group_header"
+-          isScrolling={this._isScrolling}
++          isScrolling={scrolling}
+           className={joinClasses(
+             cx('fixedDataTableLayout/header'),
+             cx('public/fixedDataTable/header'),
+@@ -703,7 +708,7 @@
+       footer =
+         <FixedDataTableRow
+           key="footer"
+-          isScrolling={this._isScrolling}
++          isScrolling={scrolling}
+           className={joinClasses(
+             cx('fixedDataTableLayout/footer'),
+             cx('public/fixedDataTable/footer'),
+@@ -728,7 +733,7 @@
+     const header =
+       <FixedDataTableRow
+         key="header"
+-        isScrolling={this._isScrolling}
++        isScrolling={scrolling}
+         className={joinClasses(
+           cx('fixedDataTableLayout/header'),
+           cx('public/fixedDataTable/header'),
+@@ -826,11 +831,11 @@
+ 
+   _renderRows = (/*number*/ offsetTop, fixedCellTemplates, fixedRightCellTemplates, scrollableCellTemplates,
+     bodyHeight) /*object*/ => {
+-    const { scrollEnabledY } = scrollbarsVisible(this.props);
++    const { scrollEnabledY, scrolling } = scrollbarsVisible(this.props);
+     const props = this.props;
+     return (
+       <FixedDataTableBufferedRows
+-        isScrolling={this._isScrolling}
++        isScrolling={scrolling}
+         fixedColumns={fixedCellTemplates}
+         fixedRightColumns={fixedRightCellTemplates}
+         height={bodyHeight}
+@@ -955,12 +960,15 @@
+       scrollFlags,
+       scrollX,
+       scrollY,
++      scrolling,
+     } = this.props;
+     const { overflowX, overflowY } = scrollFlags;
++    console.log('onWheel - ', this.scrolling);
+ 
+-    if (!this._isScrolling) {
++    if (!scrolling) {
+       this._didScrollStart();
+     }
++    console.log('onWheel -- ', this.scrolling);
+     let x = scrollX;
+     let y = scrollY;
+     if (Math.abs(deltaY) > Math.abs(deltaX) && overflowY !== 'hidden') {
+@@ -995,13 +1003,14 @@
+       onHorizontalScroll,
+       scrollActions,
+       scrollX,
++      scrolling,
+     } = this.props;
+ 
+     if (scrollPos === scrollX) {
+       return;
+     }
+ 
+-    if (!this._isScrolling) {
++    if (!scrolling) {
+       this._didScrollStart();
+     }
+ 
+@@ -1020,13 +1029,14 @@
+       onVerticalScroll,
+       scrollActions,
+       scrollY,
++      scrolling,
+     } = this.props;
+ 
+     if (scrollPos === scrollY) {
+       return;
+     }
+ 
+-    if (!this._isScrolling) {
++    if (!scrolling) {
+       this._didScrollStart();
+     }
+ 
+@@ -1044,13 +1054,13 @@
+       scrollActions,
+       scrollX,
+       scrollY,
++      scrolling,
+     } = this.props;
+ 
+-    if (this._isScrolling) {
++    if (scrolling) {
+       return;
+     }
+ 
+-    this._isScrolling = true;
+     scrollActions.startScroll();
+ 
+     if (onScrollStart) {
+@@ -1068,13 +1078,13 @@
+       scrollActions,
+       scrollX,
+       scrollY,
++      scrolling,
+     } = this.props;
+ 
+-    if (!this._isScrolling) {
++    if (!scrolling) {
+       return;
+     }
+ 
+-    this._isScrolling = false;
+     scrollActions.stopScroll();
+ 
+     if (onScrollEnd) {
+Index: examples/ScrollToRowExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/ScrollToRowExample.js	(date 1547003819000)
++++ examples/ScrollToRowExample.js	(revision )
+@@ -112,6 +112,8 @@
+           headerHeight={50}
+           width={1000}
+           height={500}
++          onScrollEnd={()=>console.log('onScrollEnd')}
++          onScrollStart={()=>console.log('onScrollStart')}
+           {...this.props}>
+           <Column
+             columnKey="avatar"
+Index: src/reducers/columnStateHelper.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/reducers/columnStateHelper.js	(date 1547003819000)
++++ src/reducers/columnStateHelper.js	(revision )
+@@ -44,11 +44,14 @@
+   isColumnResizing = props.isColumnResizing !== undefined ? props.isColumnResizing : isColumnResizing;
+   columnResizingData = isColumnResizing ? columnResizingData : {};
+ 
++  const scrolling = state.scrolling || scrollX != state.scrollX;
++
+   return Object.assign({}, state, {
+     columnResizingData,
+     isColumnResizing,
+     maxScrollX,
+     scrollX,
++    scrolling,
+   });
+ };
+ 
+Index: src/reducers/index.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/reducers/index.js	(date 1547003819000)
++++ src/reducers/index.js	(revision )
+@@ -130,6 +130,7 @@
+       // If anything has changed in state, update our rendered rows
+       if (!shallowEqual(state, newState) || scrollAnchor.changed) {
+         newState = computeRenderedRows(newState, scrollAnchor);
++        newState.scrolling = state.scrolling || scrollAnchor.changed;
+       }
+ 
+       newState = columnStateHelper.initialize(newState, newProps, oldProps);

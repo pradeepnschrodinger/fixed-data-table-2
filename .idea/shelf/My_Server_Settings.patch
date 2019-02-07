@@ -1,0 +1,18 @@
+Index: site/webpack-client.config.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- site/webpack-client.config.js	(revision 7c39a8ed769bf31c8555d9db738f81c2baa4f2aa)
++++ site/webpack-client.config.js	(revision )
+@@ -67,7 +67,9 @@
+   },
+ 
+   devServer: {
+-    host: '0.0.0.0'
++    host: '0.0.0.0',
++    port: '8090',
++    disableHostCheck: true,
+   },
+ 
+   plugins: [

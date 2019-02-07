@@ -1,0 +1,366 @@
+Index: examples/OwnerHeightExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/OwnerHeightExample.js	(revision 3a3e5ead92ebfbb79c8b0f0bad88d0ad00d61f19)
++++ examples/OwnerHeightExample.js	(revision )
+@@ -17,10 +17,43 @@
+     this.onScroll = this.onScroll.bind(this);
+     this.state = {
+       dataList: new FakeObjectDataListStore(100),
+-      scrollY: 0,
++      end: 50,
++      scrollLeft: 0,
++      scrollTop: 0,
++      rowIdx: undefined,
+     };
++
++    this.scrollToRow = this.scrollToRow.bind(this);
++    this.unsetScroll = this.unsetScroll.bind(this);
++    this.onScrollEnd = this.onScrollEnd.bind(this);
++    setInterval(this.scrollToRow, 5000);
+   }
+ 
++  scrollToRow() {
++    console.log('scrolling to 100');
++    this.setState(oldState => ({
++        //rowIdx: oldState.rowIdx ? undefined : 100,
++        scrollTop: 300 + oldState.scrollTop,
++        scrollLeft: 100 + oldState.scrollLeft,
++      }),
++      () => setTimeout(5000, this.unsetScroll)
++    );
++  }
++
++  unsetScroll() {
++    //console.log('unset');
++    //this.setState({
++    //  scrollLeft: 100 + oldState.scrollLeft,
++    //});
++  }
++
++  onScrollEnd(a, b, num) {
++    //if (this.state.scrollTop !== b) {
++    //  this.setState({scrollTop: b});
++    //}
++    return true;
++  }
++
+   componentDidMount() {
+     const win = window;
+     if (win.addEventListener) {
+@@ -33,9 +66,14 @@
+   }
+ 
+   onScroll() {
+-    this.setState({
++    this.setState(oldState => ({
++        //rowIdx: oldState.rowIdx ? undefined : 100,
++        scrollTop: 300 + oldState.scrollTop,
++        scrollLeft: 100 + oldState.scrollLeft,
+-      pageYOffset: window.pageYOffset,
++        pageYOffset: window.pageYOffset,
+-    });
++      }),
++      () => setTimeout(5000, this.unsetScroll)
++    );
+   }
+ 
+   render() {
+@@ -48,6 +86,12 @@
+         width={400}
+         height={600}
+         footerHeight={30}
++        scrollLeft={this.state.scrollLeft}
++        scrollTop={this.state.scrollTop}
++        onScrollStart={(a, b, c)=>console.log('onScrollStart', a, b, c)}
++        onScrollEnd={(a, b, c)=>console.log('onScrollEnd', a, b, c) || this.onScrollEnd(a, b, c)}
++        onHorizontalScroll={(a, b, c)=>console.log('onHorizontalScroll', a, b, c) || true}
++        onVerticalScroll={(a, b, c)=>console.log('onVerticalScroll', a, b, c) || true}
+         ownerHeight={this.props.height + 60 + pageYOffset}>
+         <Column
+           columnKey="date"
+Index: examples/FixedRightColumnsExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/FixedRightColumnsExample.js	(revision 3a3e5ead92ebfbb79c8b0f0bad88d0ad00d61f19)
++++ examples/FixedRightColumnsExample.js	(revision )
+@@ -25,9 +25,10 @@
+         rowHeight={50}
+         headerHeight={50}
+         rowsCount={dataList.getSize()}
+-        width={1000}
++        {...this.props}
+         height={500}
+-        {...this.props}>
++        width={500}
++        >
+         <Column
+           columnKey="avatar"
+           cell={<ImageCell data={dataList} />}
+Index: examples/ObjectDataExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/ObjectDataExample.js	(revision 3a3e5ead92ebfbb79c8b0f0bad88d0ad00d61f19)
++++ examples/ObjectDataExample.js	(revision )
+@@ -25,59 +25,35 @@
+         rowHeight={50}
+         headerHeight={50}
+         rowsCount={dataList.getSize()}
+-        width={1000}
++        width={500}
+         height={500}
+-        {...this.props}>
++        >
++
+         <Column
+-          columnKey="avatar"
+-          cell={<ImageCell data={dataList} />}
+-          fixed={true}
+-          width={50}
+-        />
+-        <Column
+-          columnKey="firstName"
+-          header={<Cell>First Name</Cell>}
+-          cell={<LinkCell data={dataList} />}
+-          fixed={true}
+-          width={100}
+-        />
+-        <Column
+           columnKey="lastName"
+           header={<Cell>Last Name</Cell>}
+           cell={<TextCell data={dataList} />}
+-          fixed={true}
+-          width={100}
++          fixedRight={true}
++          width={200}
+-        />
++          />
+         <Column
+           columnKey="city"
+           header={<Cell>City</Cell>}
+           cell={<TextCell data={dataList} />}
+-          width={100}
++          width={200}
+-        />
++          />
+         <Column
+           columnKey="street"
+           header={<Cell>Street</Cell>}
+           cell={<TextCell data={dataList} />}
+           width={200}
+-        />
++          />
+         <Column
+           columnKey="zipCode"
+-          header={<Cell>Zip Code</Cell>}
++          header={<Cell>Zip Code - with long text</Cell>}
+           cell={<TextCell data={dataList} />}
+-          width={200}
+-        />
+-        <Column
+-          columnKey="email"
+-          header={<Cell>Email</Cell>}
+-          cell={<LinkCell data={dataList} />}
+-          width={200}
+-        />
+-        <Column
+-          columnKey="date"
+-          header={<Cell>DOB</Cell>}
+-          cell={<DateCell data={dataList} />}
+           width={200}
+-        />
++          />
+       </Table>
+     );
+   }
+Index: examples/ResizeExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/ResizeExample.js	(revision 3a3e5ead92ebfbb79c8b0f0bad88d0ad00d61f19)
++++ examples/ResizeExample.js	(revision )
+@@ -19,6 +19,8 @@
+         firstName: 240,
+         lastName: 150,
+         sentence: 140,
++        email: 160,
++        city: 120,
+         companyName: 60,
+       },
+     };
+@@ -27,6 +29,7 @@
+   }
+ 
+   _onColumnResizeEndCallback(newColumnWidth, columnKey) {
++    console.log("_onColumnResizeEndCallback");
+     this.setState(({columnWidths}) => ({
+       columnWidths: {
+         ...columnWidths,
+@@ -45,6 +48,10 @@
+         onColumnResizeEndCallback={this._onColumnResizeEndCallback}
+         isColumnResizing={false}
+         touchScrollEnabled={true}
++        onScrollStart={(a, b, c)=>console.log('onScrollStart', a, b, c)}
++        onScrollEnd={(a, b, c)=>console.log('onScrollEnd', a, b, c)}
++        onHorizontalScroll={(a, b, c)=>console.log('onHorizontalScroll', a, b, c) || true}
++        onVerticalScroll={(a, b, c)=>console.log('onVerticalScroll', a, b, c) || true}
+         width={1000}
+         height={500}
+         {...this.props}>
+@@ -78,7 +85,23 @@
+           cell={<TextCell data={dataList} />}
+           width={columnWidths.sentence}
+           isResizable={true}
++        />
++        <Column
++          columnKey="email"
++          header={<Cell>email</Cell>}
++          cell={<TextCell data={dataList} />}
++          width={columnWidths.email}
++          isResizable={true}
++          //fixedRight={true}
++          />
++        <Column
++          columnKey="city"
++          header={<Cell>city</Cell>}
++          cell={<TextCell data={dataList} />}
++          width={columnWidths.city}
++          isResizable={true}
++          //fixedRight={true}
+-        />
++          />
+       </Table>
+     );
+   }
+Index: examples/ScrollToColumnExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/ScrollToColumnExample.js	(revision 3a3e5ead92ebfbb79c8b0f0bad88d0ad00d61f19)
++++ examples/ScrollToColumnExample.js	(revision )
+@@ -47,6 +47,10 @@
+           headerHeight={50}
+           width={1000}
+           height={500}
++          onScrollStart={(a, b, c)=>console.log('onScrollStart', a, b, c)}
++          onScrollEnd={(a, b, c)=>console.log('onScrollEnd', a, b, c)}
++          onHorizontalScroll={(a)=>console.log('onHorizontalScroll', a) || true}
++          onVerticalScroll={(a)=>console.log('onVerticalScroll', a) || true}
+           {...this.props}>
+           <Column
+             columnKey="firstName"
+Index: examples/ScrollToRowExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/ScrollToRowExample.js	(revision 3a3e5ead92ebfbb79c8b0f0bad88d0ad00d61f19)
++++ examples/ScrollToRowExample.js	(revision )
+@@ -57,7 +57,6 @@
+       currentIndex: this.state.currentIndex - 1
+     });
+   }
+-
+   _nextSearch() {
+     this.setState({
+       currentIndex: this.state.currentIndex + 1
+@@ -112,6 +111,10 @@
+           headerHeight={50}
+           width={1000}
+           height={500}
++          onScrollStart={(a, b, c)=>console.log('onScrollStart', a, b, c)}
++          onScrollEnd={(a, b, c)=>console.log('onScrollEnd', a, b, c)}
++          onHorizontalScroll={(a, b, c)=>console.log('onHorizontalScroll', a, b, c) || true}
++          onVerticalScroll={(a, b, c)=>console.log('onVerticalScroll', a, b, c) || true}
+           {...this.props}>
+           <Column
+             columnKey="avatar"
+Index: examples/InfiniteScrollExample.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- examples/InfiniteScrollExample.js	(revision 3a3e5ead92ebfbb79c8b0f0bad88d0ad00d61f19)
++++ examples/InfiniteScrollExample.js	(revision )
+@@ -57,10 +57,43 @@
+     this._updateData = this._updateData.bind(this);
+     this.state = {
+       pagedData: new PagedData(this._updateData),
+-      end: 50
++      end: 50,
++      scrollLeft: 0,
++      scrollTop: 0,
++      rowIdx: undefined,
+     };
++
++    this.scrollToRow = this.scrollToRow.bind(this);
++    this.unsetScroll = this.unsetScroll.bind(this);
++    this.onScrollEnd = this.onScrollEnd.bind(this);
++    setInterval(this.scrollToRow, 4000);
+   }
+ 
++  scrollToRow() {
++    console.log('scrolling to 100');
++    this.setState(oldState => ({
++        //rowIdx: oldState.rowIdx ? undefined : 100,
++        scrollTop: 300 + oldState.scrollTop,
++        scrollLeft: 100 + oldState.scrollLeft,
++      }),
++      () => setTimeout(5000, this.unsetScroll)
++    );
++  }
++
++  unsetScroll() {
++    //console.log('unset');
++    //this.setState({
++    //  scrollLeft: 100 + oldState.scrollLeft,
++    //});
++  }
++
++  onScrollEnd(a, b, num) {
++    //if (this.state.scrollTop !== b) {
++    //  this.setState({scrollTop: b});
++    //}
++    return true;
++  }
++
+   //Just need to force a refresh
+   _updateData(end) {
+     this.setState({
+@@ -70,16 +103,26 @@
+ 
+   render() {
+     var {pagedData} = this.state;
++    const optionalProps = {};
++    //this.state.rowIdx && (optionalProps.scrollToRow = this.state.rowIdx);
+ 
+     return (
+       <div>
+         <Table
+           rowHeight={50}
+-          rowsCount={pagedData.getSize()}
++          rowsCount={30}
+           headerHeight={50}
+           width={1000}
++          scrollLeft={this.state.scrollLeft}
++          scrollTop={this.state.scrollTop}
++          onScrollStart={(a, b, c)=>console.log('onScrollStart', a, b, c)}
++          onScrollEnd={(a, b, c)=>console.log('onScrollEnd', a, b, c) || this.onScrollEnd(a, b, c)}
++          onHorizontalScroll={(a, b, c)=>console.log('onHorizontalScroll', a, b, c) || true}
++          onVerticalScroll={(a, b, c)=>console.log('onVerticalScroll', a, b, c) || true}
++          {...this.props}
++          {...optionalProps}
+           height={500}
+-          {...this.props}>
++          width={600}>
+           <Column
+             header={<Cell></Cell>}
+             cell={({rowIndex}) => (<Cell>{rowIndex}</Cell>)}
