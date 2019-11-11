@@ -18,6 +18,7 @@
 import emptyFunction from 'emptyFunction';
 import normalizeWheel from 'normalizeWheel';
 import requestAnimationFramePolyfill from 'requestAnimationFramePolyfill';
+import Locale from 'Locale';
 
 class ReactWheelHandler {
   /**
@@ -63,12 +64,14 @@ class ReactWheelHandler {
     if (this._preventDefault) {
       event.preventDefault();
     }
-
+    
     var normalizedEvent = normalizeWheel(event);
-
+    
     // if shift is held, swap the axis of scrolling.
     if (event.shiftKey && ReactWheelHandler._allowInternalAxesSwap()) {
       normalizedEvent = ReactWheelHandler._swapNormalizedWheelAxis(normalizedEvent);
+    } else {
+      normalizedEvent.pixelX *= Locale.DIR_SIGN();
     }
 
     var deltaX = this._deltaX + normalizedEvent.pixelX;

@@ -12,14 +12,12 @@
 
 import FixedDataTableCellDefault from 'FixedDataTableCellDefault';
 import FixedDataTableColumnReorderHandle from './FixedDataTableColumnReorderHandle';
-import FixedDataTableHelper from 'FixedDataTableHelper';
+import Locale from 'Locale';
 import React from 'react';
 import PropTypes from 'prop-types';
 import cx from 'cx';
 import joinClasses from 'joinClasses';
 import shallowEqual from 'shallowEqual';
-
-const DIR_SIGN = FixedDataTableHelper.DIR_SIGN;
 
 class FixedDataTableCell extends React.Component {
   /**
@@ -142,7 +140,6 @@ class FixedDataTableCell extends React.Component {
       if (props.columnKey === props.columnReorderingData.columnKey) {
         newState.displacement = reorderCellLeft - props.left;
         newState.isReorderingThisColumn = true;
-
       } else {
         var reorderCellRight = reorderCellLeft + props.columnReorderingData.columnWidth;
         var reorderCellCenter = reorderCellLeft + (props.columnReorderingData.columnWidth / 2);
@@ -152,8 +149,6 @@ class FixedDataTableCell extends React.Component {
         var cellWasOriginallyBeforeOneBeingDragged = originalLeft > props.left;
         var changedPosition = false;
 
-
-        var dragPoint, thisCellPoint;
         if (cellIsBeforeOneBeingDragged) {
           if (reorderCellLeft < centerOfThisColumn) {
             changedPosition = true;
@@ -210,14 +205,14 @@ class FixedDataTableCell extends React.Component {
       width,
     };
 
-    if (DIR_SIGN === 1) {
-      style.left = props.left;
-    } else {
+    if (Locale.isRTL()) {
       style.right = props.left;
+    } else {
+      style.left = props.left;
     }
 
     if (this.state.isReorderingThisColumn) {
-      style.transform = `translateX(${this.state.displacement}px) translateZ(0)`;
+      style.transform = `translateX(${this.state.displacement * Locale.DIR_SIGN()}px) translateZ(0)`;
       style.zIndex = 1;
     }
 

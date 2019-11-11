@@ -16,6 +16,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'ReactDOM';
 import ReactWheelHandler from 'ReactWheelHandler';
+import Locale from 'Locale';
 
 const cssVar = require('cssVar');
 import cx from 'cx';
@@ -134,7 +135,9 @@ class Scrollbar extends React.PureComponent {
         width: size,
       };
       faceStyle = {
-        width: faceSize - FACE_MARGIN_2
+        width: faceSize - FACE_MARGIN_2,
+        top: 0,
+        bottom: 0,
       };
       FixedDataTableTranslateDOMPosition(faceStyle, position, 0, this._initialRender);
     } else {
@@ -142,10 +145,16 @@ class Scrollbar extends React.PureComponent {
         top: verticalTop,
         height: size,
       };
+      if (Locale.isRTL()) {
+        mainStyle.left = mainStyle.right || 0;
+        mainStyle.right = 'auto';
+      }
       faceStyle = {
         height: faceSize - FACE_MARGIN_2,
       };
       FixedDataTableTranslateDOMPosition(faceStyle, 0, position, this._initialRender);
+      faceStyle.left = 0;
+      faceStyle.right = 0;
     }
 
     mainStyle.touchAction = 'none';
@@ -183,7 +192,7 @@ class Scrollbar extends React.PureComponent {
 
     this._wheelHandler = new ReactWheelHandler(
       onWheel,
-      this._shouldHandleX, // Should hanlde horizontal scroll
+      this._shouldHandleX, // Should handle horizontal scroll
       this._shouldHandleY // Should handle vertical scroll
     );
     this._initialRender = true;
@@ -384,7 +393,7 @@ class Scrollbar extends React.PureComponent {
 
   _onMouseMove = (/*number*/ deltaX, /*number*/ deltaY) => {
     var props = this.props;
-    var delta = this.state.isHorizontal ? deltaX : deltaY;
+    var delta = this.state.isHorizontal ? deltaX * Locale.DIR_SIGN() : deltaY;
     delta /= this.state.scale;
 
     this._setNextState(
